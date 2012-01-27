@@ -32,17 +32,6 @@ public class ProtobufSequenceFileScheme extends Scheme {
     }
 
     @Override
-    public void sourceInit(Tap tap, JobConf conf) throws IOException {
-        // set the protocol buffer class to deserialize into here?
-        //conf.set(AvroJob.INPUT_SCHEMA, getSchema().toString());
-        conf.setInputFormat(SequenceFileInputFormat.class);
-    }
-
-    @Override
-    public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
-    }
-
-    @Override
     public Tuple source(Object key, Object val) {
         Fields sourceFields = getSourceFields();
         Tuple tuple = new Tuple();
@@ -105,6 +94,15 @@ public class ProtobufSequenceFileScheme extends Scheme {
         byte[] valueBytes = new byte[val.getLength()];
         System.arraycopy(bytes, 0, valueBytes, 0, val.getLength());
         return valueBytes;
+    }
+
+    @Override
+    public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
+    }
+
+    @Override
+    public void sourceInit(Tap tap, JobConf conf) throws IOException {
+        conf.setInputFormat(SequenceFileInputFormat.class);
     }
 
     @Override
