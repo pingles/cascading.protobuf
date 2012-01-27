@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProtobufSequenceFileScheme extends Scheme {
@@ -47,9 +48,9 @@ public class ProtobufSequenceFileScheme extends Scheme {
 
         try {
             DynamicMessage message = parseMessage(getMessageDescriptor(), valueBytes);
-            for (int i = 0; i < sourceFields.size(); i++) {
-                String fieldName = sourceFields.get(i).toString();
+            List<String> fieldNames = getFieldNames();
 
+            for (String fieldName : fieldNames) {
                 Descriptors.FieldDescriptor fieldDescriptor = getFieldDescriptor(getMessageDescriptor(), fieldName);
                 
                 if (!fieldDescriptor.isRepeated()) {
@@ -70,6 +71,21 @@ public class ProtobufSequenceFileScheme extends Scheme {
         }
 
         return tuple;
+    }
+
+    private List<String> getFieldNames() {
+        List<String> fieldNames = new ArrayList<String>();
+        if (getSourceFields().size() == 0) {
+            List<Descriptors.FieldDescriptor> fields = getMessageDescriptor().getFields();
+            for (Descriptors.FieldDescriptor field : fields) {
+                fieldNames.add(field.getName());
+            }
+        } else {
+            for (int i = 0; i < getSourceFields().size(); i++) {
+                fieldNames.add(getSourceFields().get(i).toString());
+            }
+        }
+        return fieldNames;
     }
 
     private Object convertToTupleObject(Object fieldValue) {

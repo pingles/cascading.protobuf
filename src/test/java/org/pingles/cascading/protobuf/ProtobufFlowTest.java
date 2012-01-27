@@ -63,6 +63,26 @@ public class ProtobufFlowTest {
         assertEquals(1, lines.size());
         assertEquals("Paul", lines.get(0));
     }
+    
+    @Test
+    public void shouldWorkWithSpecifyingFieldsALL() throws IOException {
+        String inputFile = "./tmp/test/data/small.seq";
+        String outputDir = "./tmp/test/output/names-out";
+
+        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
+
+        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, Fields.ALL), inputFile);
+        Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
+        Pipe pipe = new Pipe("Pass through");
+
+        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        flow.complete();
+
+        List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
+
+        assertEquals(1, lines.size());
+        assertEquals("123\tPaul\ttest@pingles.org", lines.get(0));
+    }
 
     @Test
     public void shouldKeepNamesAndEmail() throws IOException {
