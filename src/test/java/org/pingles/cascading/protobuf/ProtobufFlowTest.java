@@ -81,7 +81,8 @@ public class ProtobufFlowTest {
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
 
         assertEquals(1, lines.size());
-        assertEquals("123\tPaul\ttest@pingles.org", lines.get(0));
+        // there's an empty tab because there are no friends... weird huh
+        assertEquals("123\tPaul\ttest@pingles.org\t", lines.get(0));
     }
 
     @Test
