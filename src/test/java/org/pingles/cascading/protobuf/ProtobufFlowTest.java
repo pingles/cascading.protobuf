@@ -10,6 +10,9 @@ import cascading.tap.Lfs;
 import cascading.tap.SinkMode;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
+import cascading.tuple.TupleEntry;
+import cascading.tuple.TupleEntryIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -25,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.*;
 
 public class ProtobufFlowTest {
     private static final String TEST_DATA_ROOT = "./tmp/test";
@@ -99,6 +102,30 @@ public class ProtobufFlowTest {
 
         assertEquals(1, lines.size());
         assertEquals("Paul\t", lines.get(0));
+    }
+
+    @Test
+    public void shouldHandleRepeatedFields() throws IOException {
+        String inputFile = "./tmp/test/data/small.seq";
+        String outputDir = "./tmp/test/output/names-out";
+
+        Messages.Person strongbad = personBuilder().setId(456).setName("strongbad").build();
+        Messages.Person homestar = personBuilder().setId(789).setName("homestar").build();
+        Messages.Person paul = personBuilder().setId(123).setName("Paul").addFriends(strongbad).addFriends(homestar).build();
+
+        writePersonToSequenceFile(paul, inputFile);
+
+        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email", "friends")), inputFile);
+        Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
+        Pipe pipe = new Each("Extract friends names", new Fields("friends"), new Identity());
+
+        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        flow.complete();
+
+        List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
+
+        assertEquals(1, lines.size());
+        assertEquals("456\tstrongbad\t\t\t789\thomestar\t\t", lines.get(0));
     }
 
     private Messages.Person.Builder personBuilder() {

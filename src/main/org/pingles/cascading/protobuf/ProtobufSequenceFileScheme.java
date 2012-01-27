@@ -8,7 +8,6 @@ import cascading.tuple.TupleEntry;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Message;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -46,20 +45,46 @@ public class ProtobufSequenceFileScheme extends Scheme {
 
         byte[] valueBytes = toBytes((BytesWritable) val);
 
-        LOGGER.info("Constructed message descriptor: " + getMessageDescriptor());
         try {
             DynamicMessage message = parseMessage(getMessageDescriptor(), valueBytes);
             for (int i = 0; i < sourceFields.size(); i++) {
                 String fieldName = sourceFields.get(i).toString();
-                Descriptors.FieldDescriptor fd = getFieldDescriptor(getMessageDescriptor(), fieldName);
-                Object fieldValue = message.getField(fd);
-                tuple.add(fieldValue);
+
+                Descriptors.FieldDescriptor fieldDescriptor = getFieldDescriptor(getMessageDescriptor(), fieldName);
+                
+                if (!fieldDescriptor.isRepeated()) {
+                    Object fieldValue = message.getField(fieldDescriptor);
+                    tuple.add(convertToTupleObject(fieldValue));
+                } else {
+                    Tuple t = new Tuple();
+                    for (int i1 = 0; i1 < message.getRepeatedFieldCount(fieldDescriptor); i1++) {
+                        Object fieldValue = message.getRepeatedField(fieldDescriptor, i1);
+                        t.add(convertToTupleObject(fieldValue));
+                    }
+                    tuple.add(t);
+                }
+
             }
         } catch (InvalidProtocolBufferException e) {
             throw new RuntimeException(e);
         }
 
         return tuple;
+    }
+
+    private Object convertToTupleObject(Object fieldValue) {
+        if (fieldValue instanceof  DynamicMessage) {
+            DynamicMessage msg = (DynamicMessage)fieldValue;
+            List<Descriptors.FieldDescriptor> fields = msg.getDescriptorForType().getFields();
+            Tuple t = new Tuple();
+            for (Descriptors.FieldDescriptor field : fields) {
+                Object value = msg.getField(field);
+                t.add(value);
+            }
+            return t;
+        } else {
+            return fieldValue;
+        }
     }
 
     private Descriptors.FieldDescriptor getFieldDescriptor(Descriptors.Descriptor messageDescriptor, String fieldName) {
