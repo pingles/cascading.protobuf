@@ -22,7 +22,6 @@ import java.util.List;
 
 public class ProtobufSequenceFileScheme extends Scheme {
     private static final Logger LOGGER = Logger.getLogger(ProtobufSequenceFileScheme.class);
-    private Class<Message> messageClass;
     private Descriptors.Descriptor descriptor;
     private String messageClassName;
 
@@ -32,12 +31,22 @@ public class ProtobufSequenceFileScheme extends Scheme {
     }
 
     @Override
+    public void sourceInit(Tap tap, JobConf conf) throws IOException {
+        conf.setInputFormat(SequenceFileInputFormat.class);
+    }
+
+    @Override
+    public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
+    }
+
+    @Override
     public Tuple source(Object key, Object val) {
         Fields sourceFields = getSourceFields();
         Tuple tuple = new Tuple();
 
         byte[] valueBytes = toBytes((BytesWritable) val);
 
+        LOGGER.info("Constructed message descriptor: " + getMessageDescriptor());
         try {
             DynamicMessage message = parseMessage(getMessageDescriptor(), valueBytes);
             for (int i = 0; i < sourceFields.size(); i++) {
@@ -72,8 +81,7 @@ public class ProtobufSequenceFileScheme extends Scheme {
     private Descriptors.Descriptor getMessageDescriptor() {
         if (descriptor == null) {
             try {
-                LOGGER.info("Attempting to retrieve Descriptor for class " + messageClassName);
-                this.messageClass = (Class<Message>) Class.forName(messageClassName);
+                Class messageClass = Class.forName(messageClassName);
                 Method descriptorMethod = messageClass.getMethod("getDescriptor");
                 descriptor = (Descriptors.Descriptor) descriptorMethod.invoke(new Object[]{});
             } catch (IllegalAccessException e) {
@@ -94,15 +102,6 @@ public class ProtobufSequenceFileScheme extends Scheme {
         byte[] valueBytes = new byte[val.getLength()];
         System.arraycopy(bytes, 0, valueBytes, 0, val.getLength());
         return valueBytes;
-    }
-
-    @Override
-    public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
-    }
-
-    @Override
-    public void sourceInit(Tap tap, JobConf conf) throws IOException {
-        conf.setInputFormat(SequenceFileInputFormat.class);
     }
 
     @Override
