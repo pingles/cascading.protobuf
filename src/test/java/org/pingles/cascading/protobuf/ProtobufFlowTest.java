@@ -46,7 +46,7 @@ public class ProtobufFlowTest {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        writePersonToSequenceFile(createPerson(123, "Paul", "test@pingles.org"), inputFile);
+        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
 
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
@@ -66,7 +66,7 @@ public class ProtobufFlowTest {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        writePersonToSequenceFile(createPerson(123, "Paul", "test@pingles.org"), inputFile);
+        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
 
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
@@ -81,10 +81,28 @@ public class ProtobufFlowTest {
         assertEquals("Paul\ttest@pingles.org", lines.get(0));
     }
 
-    private Messages.Person createPerson(int id, String name, String email) {
-        Messages.Person.Builder builder = Messages.Person.newBuilder();
-        builder.setEmail(email).setName(name).setId(id);
-        return builder.build();
+    @Test
+    public void shouldSetEmailFieldToEmptyStringWhenNotSetOnMessage() throws IOException {
+        String inputFile = "./tmp/test/data/small.seq";
+        String outputDir = "./tmp/test/output/names-out";
+
+        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").build(), inputFile);
+
+        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
+        Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
+        Pipe pipe = new Each("Extract names", new Fields("name", "email"), new Identity());
+
+        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        flow.complete();
+
+        List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
+
+        assertEquals(1, lines.size());
+        assertEquals("Paul\t", lines.get(0));
+    }
+
+    private Messages.Person.Builder personBuilder() {
+        return Messages.Person.newBuilder();
     }
 
     private void writePersonToSequenceFile(Messages.Person person, String path) throws IOException {
