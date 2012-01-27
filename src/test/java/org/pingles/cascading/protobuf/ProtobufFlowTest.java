@@ -117,7 +117,7 @@ public class ProtobufFlowTest {
 
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email", "friends")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
-        Pipe pipe = new Each("Extract friends names", new Fields("friends"), new Identity());
+        Pipe pipe = new Each("Extract friends", new Fields("friends"), new Identity());
 
         Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
         flow.complete();
