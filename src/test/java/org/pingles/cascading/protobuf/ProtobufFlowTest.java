@@ -41,36 +41,58 @@ public class ProtobufFlowTest {
         FileUtils.forceMkdir(new File(TEST_DATA_ROOT));
     }
 
-    private void writePersonToSequenceFile(Messages.Person person, String path) throws IOException {
-        SequenceFile.Writer writer = SequenceFile.createWriter(FileSystem.getLocal(conf), conf, new Path(path), LongWritable.class, BytesWritable.class);
-        try {
-            Messages.Person p = person;
-            writer.append(new LongWritable(1), new BytesWritable(p.toByteArray()));
-        } finally {
-            writer.close();
-        }
-    }
-
     @Test
     public void shouldKeepOnlyNames() throws IOException {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        Messages.Person.Builder builder = Messages.Person.newBuilder();
-        builder.setEmail("test@pingles.org").setName("Paul").setId(123);
-        writePersonToSequenceFile(builder.build(), TEST_DATA_ROOT + "/data/small.seq");
+        writePersonToSequenceFile(createPerson(123, "Paul", "test@pingles.org"), inputFile);
 
-        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class.getName(), new Fields("id", "name", "email")), inputFile);
+        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
-        Pipe pipe = new Each("names", new Fields("name"), new Identity());
+        Pipe pipe = new Each("Extract names", new Fields("name"), new Identity());
 
         Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
-
         flow.complete();
 
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
 
         assertEquals(1, lines.size());
         assertEquals("Paul", lines.get(0));
+    }
+
+    @Test
+    public void shouldKeepNamesAndEmail() throws IOException {
+        String inputFile = "./tmp/test/data/small.seq";
+        String outputDir = "./tmp/test/output/names-out";
+
+        writePersonToSequenceFile(createPerson(123, "Paul", "test@pingles.org"), inputFile);
+
+        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
+        Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
+        Pipe pipe = new Each("Extract names", new Fields("name", "email"), new Identity());
+
+        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        flow.complete();
+
+        List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
+
+        assertEquals(1, lines.size());
+        assertEquals("Paul\ttest@pingles.org", lines.get(0));
+    }
+
+    private Messages.Person createPerson(int id, String name, String email) {
+        Messages.Person.Builder builder = Messages.Person.newBuilder();
+        builder.setEmail(email).setName(name).setId(id);
+        return builder.build();
+    }
+
+    private void writePersonToSequenceFile(Messages.Person person, String path) throws IOException {
+        SequenceFile.Writer writer = SequenceFile.createWriter(FileSystem.getLocal(conf), conf, new Path(path), LongWritable.class, BytesWritable.class);
+        try {
+            writer.append(new LongWritable(1), new BytesWritable(person.toByteArray()));
+        } finally {
+            writer.close();
+        }
     }
 }

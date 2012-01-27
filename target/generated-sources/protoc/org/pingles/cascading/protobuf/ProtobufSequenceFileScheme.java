@@ -24,11 +24,11 @@ public class ProtobufSequenceFileScheme extends Scheme {
     private static final Logger LOGGER = Logger.getLogger(ProtobufSequenceFileScheme.class);
     private Class<Message> messageClass;
     private Descriptors.Descriptor descriptor;
-    private String descriptorClassName;
+    private String messageClassName;
 
-    public ProtobufSequenceFileScheme(String descriptorClassName, Fields sourceFields) {
+    public ProtobufSequenceFileScheme(Class messageClass, Fields sourceFields) {
         super(sourceFields);
-        this.descriptorClassName = descriptorClassName;
+        this.messageClassName = messageClass.getName();
     }
 
     @Override
@@ -49,7 +49,6 @@ public class ProtobufSequenceFileScheme extends Scheme {
 
         byte[] valueBytes = toBytes((BytesWritable) val);
 
-        LOGGER.info("Constructed message descriptor: " + getMessageDescriptor());
         try {
             DynamicMessage message = parseMessage(getMessageDescriptor(), valueBytes);
             for (int i = 0; i < sourceFields.size(); i++) {
@@ -78,14 +77,14 @@ public class ProtobufSequenceFileScheme extends Scheme {
     private DynamicMessage parseMessage(Descriptors.Descriptor messageDescriptor, byte[] valueBytes) throws InvalidProtocolBufferException {
         DynamicMessage.Builder builder = DynamicMessage.newBuilder(messageDescriptor).mergeFrom(valueBytes);
         DynamicMessage message = builder.build();
-        LOGGER.info("Message: " + message);
         return message;
     }
 
     private Descriptors.Descriptor getMessageDescriptor() {
         if (descriptor == null) {
             try {
-                this.messageClass = (Class<Message>) Class.forName(descriptorClassName);
+                LOGGER.info("Attempting to retrieve Descriptor for class " + messageClassName);
+                this.messageClass = (Class<Message>) Class.forName(messageClassName);
                 Method descriptorMethod = messageClass.getMethod("getDescriptor");
                 descriptor = (Descriptors.Descriptor) descriptorMethod.invoke(new Object[]{});
             } catch (IllegalAccessException e) {
