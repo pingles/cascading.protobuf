@@ -1,6 +1,9 @@
 package org.pingles.cascading.protobuf;
 
+import cascading.flow.FlowProcess;
 import cascading.scheme.Scheme;
+import cascading.scheme.SinkCall;
+import cascading.scheme.SourceCall;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
@@ -12,6 +15,7 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapred.RecordReader;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -20,7 +24,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProtobufSequenceFileScheme extends Scheme {
+public class ProtobufSequenceFileScheme 
+		extends Scheme<JobConf, RecordReader, OutputCollector, Object[], Object[]> {
     private static final Logger LOGGER = Logger.getLogger(ProtobufSequenceFileScheme.class);
     private Descriptors.Descriptor descriptor;
     private String messageClassName;
@@ -30,20 +35,13 @@ public class ProtobufSequenceFileScheme extends Scheme {
         this.messageClassName = messageClass.getName();
     }
 
-    @Override
-    public void sourceInit(Tap tap, JobConf conf) throws IOException {
-        conf.setInputFormat(SequenceFileInputFormat.class);
-    }
 
-    @Override
-    public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
-    }
-
-    @Override
-    public Tuple source(Object key, Object val) {
+	@Override
+	public boolean source(FlowProcess<JobConf> arg0, SourceCall<Object[], RecordReader> sourceCall) throws IOException {
         Fields sourceFields = getSourceFields();
         Tuple tuple = new Tuple();
-
+        Object key = sourceCall.getContext()[ 0 ];
+        Object val = sourceCall.getContext()[ 1 ];
         byte[] valueBytes = toBytes((BytesWritable) val);
 
         try {
@@ -70,7 +68,8 @@ public class ProtobufSequenceFileScheme extends Scheme {
             throw new RuntimeException(e);
         }
 
-        return tuple;
+        sourceCall.getIncomingEntry().setTuple( tuple );
+        return true;
     }
 
     private List<String> getFieldNames() {
@@ -145,7 +144,26 @@ public class ProtobufSequenceFileScheme extends Scheme {
         return valueBytes;
     }
 
-    @Override
-    public void sink(TupleEntry tupleEntry, OutputCollector outputCollector) throws IOException {
-    }
+	@Override
+	public void sink(FlowProcess<JobConf> arg0,
+			SinkCall<Object[], OutputCollector> arg1) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void sinkConfInit(FlowProcess<JobConf> arg0,
+			Tap<JobConf, RecordReader, OutputCollector> arg1, JobConf arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void sourceConfInit(FlowProcess<JobConf> arg0,
+			Tap<JobConf, RecordReader, OutputCollector> arg1, JobConf arg2) {
+		// TODO Auto-generated method stub
+		
+	}
 }
