@@ -39,9 +39,15 @@ public class ProtobufSequenceFileScheme
 	@Override
 	public boolean source(FlowProcess<JobConf> arg0, SourceCall<Object[], RecordReader> sourceCall) throws IOException {
         Fields sourceFields = getSourceFields();
-        Tuple tuple = new Tuple();
         Object key = sourceCall.getContext()[ 0 ];
         Object val = sourceCall.getContext()[ 1 ];
+        boolean result = sourceCall.getInput().next( key, val );
+        
+        if( !result )
+            return false;
+        
+        Tuple tuple =  sourceCall.getIncomingEntry().getTuple();
+        tuple.clear();
         byte[] valueBytes = toBytes((BytesWritable) val);
 
         try {
@@ -60,7 +66,7 @@ public class ProtobufSequenceFileScheme
                         Object fieldValue = message.getRepeatedField(fieldDescriptor, i1);
                         t.add(convertToTupleObject(fieldValue));
                     }
-                    tuple.add(t);
+                    tuple.addAll(t);
                 }
 
             }
@@ -68,7 +74,6 @@ public class ProtobufSequenceFileScheme
             throw new RuntimeException(e);
         }
 
-        sourceCall.getIncomingEntry().setTuple( tuple );
         return true;
     }
 
