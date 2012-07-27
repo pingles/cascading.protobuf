@@ -26,7 +26,10 @@ import java.util.List;
 
 public class ProtobufSequenceFileScheme 
 		extends Scheme<JobConf, RecordReader, OutputCollector, Object[], Object[]> {
-    private static final Logger LOGGER = Logger.getLogger(ProtobufSequenceFileScheme.class);
+
+	private static final long serialVersionUID = 1L;
+	
+	private static final Logger LOGGER = Logger.getLogger(ProtobufSequenceFileScheme.class);
     private Descriptors.Descriptor descriptor;
     private String messageClassName;
 
