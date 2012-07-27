@@ -5,7 +5,7 @@ import cascading.flow.FlowConnector;
 import cascading.operation.Identity;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
-import cascading.scheme.TextLine;
+import cascading.scheme.hadoop.TextLine;
 import cascading.tap.Lfs;
 import cascading.tap.SinkMode;
 import cascading.tap.Tap;
