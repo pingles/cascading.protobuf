@@ -6,13 +6,17 @@ import cascading.operation.Identity;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.TextLine;
-import cascading.tap.Lfs;
+import cascading.tap.hadoop.Lfs;
 import cascading.tap.SinkMode;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryIterator;
+import cascading.PlatformTestCase;
+import cascading.test.LocalPlatform;
+import cascading.test.HadoopPlatform;
+import cascading.test.PlatformRunner;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -30,7 +34,9 @@ import java.util.Map;
 
 import static junit.framework.Assert.*;
 
-public class ProtobufFlowTest {
+@PlatformRunner.Platform({LocalPlatform.class, HadoopPlatform.class})
+
+public class ProtobufFlowTest extends PlatformTestCase {
     private static final String TEST_DATA_ROOT = "./tmp/test";
     private static Map<Object, Object> properties = new HashMap<Object, Object>();
     private final JobConf conf = new JobConf();
@@ -55,7 +61,7 @@ public class ProtobufFlowTest {
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
         Pipe pipe = new Each("Extract names", new Fields("name"), new Identity());
 
-        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
         flow.complete();
 
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
@@ -75,7 +81,7 @@ public class ProtobufFlowTest {
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
         Pipe pipe = new Pipe("Pass through");
 
-        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
         flow.complete();
 
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
@@ -96,7 +102,7 @@ public class ProtobufFlowTest {
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
         Pipe pipe = new Each("Extract names", new Fields("name", "email"), new Identity());
 
-        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
         flow.complete();
 
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
@@ -116,7 +122,7 @@ public class ProtobufFlowTest {
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
         Pipe pipe = new Each("Extract names", new Fields("name", "email"), new Identity());
 
-        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
         flow.complete();
 
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
@@ -140,7 +146,7 @@ public class ProtobufFlowTest {
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
         Pipe pipe = new Each("Extract friends", new Fields("friends"), new Identity());
 
-        Flow flow = new FlowConnector(properties).connect(source, sink, pipe);
+        Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
         flow.complete();
 
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
