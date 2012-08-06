@@ -14,7 +14,6 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import cascading.tuple.TupleEntryIterator;
 import cascading.PlatformTestCase;
-import cascading.test.LocalPlatform;
 import cascading.test.HadoopPlatform;
 import cascading.test.PlatformRunner;
 import org.apache.commons.io.FileUtils;
@@ -34,7 +33,7 @@ import java.util.Map;
 
 import static junit.framework.Assert.*;
 
-@PlatformRunner.Platform({LocalPlatform.class, HadoopPlatform.class})
+@PlatformRunner.Platform({HadoopPlatform.class})
 
 public class ProtobufFlowTest extends PlatformTestCase {
     private static final String TEST_DATA_ROOT = "./tmp/test";
@@ -57,8 +56,12 @@ public class ProtobufFlowTest extends PlatformTestCase {
 
         writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
 
-        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
-        Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
+        Tap source = getPlatform().
+        		getTap(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), 
+        				inputFile,
+        				SinkMode.KEEP);
+        Tap sink = getPlatform().
+        		getTextFile(null, null, outputDir, SinkMode.REPLACE);
         Pipe pipe = new Each("Extract names", new Fields("name"), new Identity());
 
         Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);

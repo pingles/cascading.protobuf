@@ -188,8 +188,7 @@ public class ProtobufSequenceFileScheme extends
 
 	@Override
 	public void sourceConfInit(FlowProcess<JobConf> arg0,
-			Tap<JobConf, RecordReader, OutputCollector> arg1, JobConf arg2) {
-		// TODO Auto-generated method stub
-
+			Tap<JobConf, RecordReader, OutputCollector> arg1, JobConf conf) {
+		conf.setInputFormat( SequenceFileInputFormat.class );
 	}
 }
