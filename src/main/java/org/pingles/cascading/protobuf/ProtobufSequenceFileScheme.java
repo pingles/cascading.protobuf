@@ -12,6 +12,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
@@ -39,26 +40,18 @@ public class ProtobufSequenceFileScheme extends
 		this.messageClassName = messageClass.getName();
 	}
 
-	private boolean sourceReadInput(
-			SourceCall<Object[], RecordReader> sourceCall) throws IOException 
-	{
-		Object[] context = sourceCall.getContext();
-		return sourceCall.getInput().next(context[0], context[1]);
-	}
-
 	@Override
 	public boolean source(FlowProcess<JobConf> arg0,
-			SourceCall<Object[], RecordReader> sourceCall) throws IOException {
-		// Fields sourceFields = getSourceFields();
-		Object key = sourceCall.getContext()[0];
-		Object val = sourceCall.getContext()[1];
-
-		if (!sourceReadInput(sourceCall))
-			return false;
-
+			SourceCall<Object[], RecordReader> sourceCall) throws IOException {		
+	    LongWritable key = new LongWritable();
+	    BytesWritable val = new BytesWritable();
+	    boolean result = sourceCall.getInput().next( key, val );
+	    if( !result )
+	        return false;
+	    
 		Tuple tuple = sourceCall.getIncomingEntry().getTuple();
 		tuple.clear();
-		byte[] valueBytes = toBytes((BytesWritable) val);
+		byte[] valueBytes = toBytes(val);
 
 		try {
 			DynamicMessage message = parseMessage(getMessageDescriptor(),
@@ -186,6 +179,12 @@ public class ProtobufSequenceFileScheme extends
 
 	}
 
+	@Override
+	public void sourceCleanup( FlowProcess<JobConf> flowProcess, SourceCall<Object[], RecordReader> sourceCall )
+	{
+		sourceCall.setContext( null );
+	}
+	
 	@Override
 	public void sourceConfInit(FlowProcess<JobConf> arg0,
 			Tap<JobConf, RecordReader, OutputCollector> arg1, JobConf conf) {
