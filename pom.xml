@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.pingles</groupId>
+	<groupId>cascading.protobuf</groupId>
 	<artifactId>cascading.protobuf</artifactId>
 	<version>0.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
@@ -20,6 +20,18 @@
 			<artifactId>cascading-core</artifactId>
 			<version>2.0.3</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>cascading</groupId>
+			<artifactId>cascading-hadoop</artifactId>
+			<version>2.0.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>cascading</groupId>
+			<artifactId>cascading-test</artifactId>
+			<version>2.0.3</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -70,19 +82,7 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-core</artifactId>
 			<version>0.20.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>cascading</groupId>
-			<artifactId>cascading-hadoop</artifactId>
-			<version>2.0.3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>cascading</groupId>
-			<artifactId>cascading-test</artifactId>
-			<version>2.0.3</version>
-			<scope>test</scope>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
