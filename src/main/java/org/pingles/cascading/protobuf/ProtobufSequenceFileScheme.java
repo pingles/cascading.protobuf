@@ -7,12 +7,12 @@ import cascading.scheme.SourceCall;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
-import cascading.tuple.TupleEntry;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Message;
+
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
@@ -34,24 +34,33 @@ public class ProtobufSequenceFileScheme extends
 			.getLogger(ProtobufSequenceFileScheme.class);
 	private Descriptors.Descriptor descriptor;
 	private String messageClassName;
-
-	public ProtobufSequenceFileScheme(Class messageClass, Fields sourceFields) {
+	
+	public <T extends Message> ProtobufSequenceFileScheme(Class<T> messageClass, Fields sourceFields) {
 		super(sourceFields);
 		this.messageClassName = messageClass.getName();
-	}
+	}	  
 
+	@Override public void sourcePrepare(FlowProcess<JobConf> flowProcess,
+			SourceCall<Object[], RecordReader> sourceCall) 
+	{
+		Object[] pair = new Object[]{sourceCall.getInput().createKey(), 
+									 sourceCall.getInput().createValue()};
+		sourceCall.setContext( pair );
+	}
+	
 	@Override
 	public boolean source(FlowProcess<JobConf> arg0,
 			SourceCall<Object[], RecordReader> sourceCall) throws IOException {		
-	    LongWritable key = new LongWritable();
-	    BytesWritable val = new BytesWritable();
+		Object key = sourceCall.getContext()[ 0 ];
+		Object val = sourceCall.getContext()[ 1 ];
+		
 	    boolean result = sourceCall.getInput().next( key, val );
 	    if( !result )
 	        return false;
 	    
 		Tuple tuple = sourceCall.getIncomingEntry().getTuple();
 		tuple.clear();
-		byte[] valueBytes = toBytes(val);
+		byte[] valueBytes = toBytes((BytesWritable)val);
 
 		try {
 			DynamicMessage message = parseMessage(getMessageDescriptor(),
