@@ -54,7 +54,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
+        writePersonToSequenceFile(this.personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
 
         Tap source = getPlatform().
         		getTap(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), 
@@ -78,7 +78,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
+        writePersonToSequenceFile(this.personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
 
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, Fields.ALL), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
@@ -99,7 +99,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
+        writePersonToSequenceFile(this.personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
 
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
@@ -119,7 +119,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        writePersonToSequenceFile(personBuilder().setId(123).setName("Paul").build(), inputFile);
+        writePersonToSequenceFile(this.personBuilder().setId(123).setName("Paul").build(), inputFile);
 
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
@@ -139,9 +139,9 @@ public class ProtobufFlowTest extends PlatformTestCase {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        Messages.Person strongbad = personBuilder().setId(456).setName("strongbad").build();
-        Messages.Person homestar = personBuilder().setId(789).setName("homestar").build();
-        Messages.Person paul = personBuilder().setId(123).setName("Paul").addFriends(strongbad).addFriends(homestar).build();
+        Messages.Person strongbad = this.personBuilder().setId(456).setName("strongbad").build();
+        Messages.Person homestar = this.personBuilder().setId(789).setName("homestar").build();
+        Messages.Person paul = this.personBuilder().setId(123).setName("Paul").addFriends(strongbad).addFriends(homestar).build();
 
         writePersonToSequenceFile(paul, inputFile);
 
