@@ -4,7 +4,7 @@
 
 	<groupId>cascading.protobuf</groupId>
 	<artifactId>cascading.protobuf</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.3</version>
 	<packaging>jar</packaging>
 
 	<name>cascading.protobuf</name>
