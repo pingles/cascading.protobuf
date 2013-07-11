@@ -10,7 +10,7 @@ encoded messages. Currently only supports operation as a source.
 ### Leiningen
 
 ```clojure
-[cascading.protobuf "0.0.3-SNAPSHOT"]
+[cascading.protobuf "0.0.3"]
 ```
 
 ### Maven
@@ -19,7 +19,7 @@ encoded messages. Currently only supports operation as a source.
 <dependency>
   <groupId>cascading.protobuf</groupId>
   <artifactId>cascading.protobuf</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.3</version>
 </dependency>
 ```
 
