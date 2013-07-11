@@ -1,21 +1,17 @@
 package org.pingles.cascading.protobuf;
 
+import cascading.PlatformTestCase;
 import cascading.flow.Flow;
-import cascading.flow.FlowConnector;
 import cascading.operation.Identity;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.TextLine;
-import cascading.tap.hadoop.Lfs;
 import cascading.tap.SinkMode;
 import cascading.tap.Tap;
-import cascading.tuple.Fields;
-import cascading.tuple.Tuple;
-import cascading.tuple.TupleEntry;
-import cascading.tuple.TupleEntryIterator;
-import cascading.PlatformTestCase;
+import cascading.tap.hadoop.Lfs;
 import cascading.test.HadoopPlatform;
 import cascading.test.PlatformRunner;
+import cascading.tuple.Fields;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -25,13 +21,12 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapred.JobConf;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static junit.framework.Assert.*;
 
 @PlatformRunner.Platform({HadoopPlatform.class})
 

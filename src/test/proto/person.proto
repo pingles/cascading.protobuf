@@ -1,3 +1,5 @@
+package org.pingles.cascading.protobuf;
+
 option java_package = "org.pingles.cascading.protobuf";
 option java_outer_classname = "Messages";
 
