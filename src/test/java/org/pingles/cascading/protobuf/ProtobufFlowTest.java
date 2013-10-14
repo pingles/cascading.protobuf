@@ -150,7 +150,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
 
         assertEquals(1, lines.size());
-        assertEquals("456\tstrongbad\t\t\t789\thomestar\t\t", lines.get(0));
+        assertEquals("456\tstrongbad\t\t[]\t789\thomestar\t\t[]", lines.get(0));
     }
 
     private Messages.Person.Builder personBuilder() {
