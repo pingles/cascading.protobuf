@@ -38,6 +38,9 @@ public class ProtobufSequenceFileScheme extends
 	public <T extends Message> ProtobufSequenceFileScheme(Class<T> messageClass, Fields sourceFields) {
 		super(sourceFields);
 		this.messageClassName = messageClass.getName();
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(String.format("Reading %s messages", messageClassName));
+        }
 	}	  
 
 	@Override public void sourcePrepare(FlowProcess<JobConf> flowProcess,
@@ -110,19 +113,22 @@ public class ProtobufSequenceFileScheme extends
 	}
 
 	private Object convertToTupleObject(Object fieldValue) {
-		if (fieldValue instanceof DynamicMessage) {
-			DynamicMessage msg = (DynamicMessage) fieldValue;
+        Object returnValue = fieldValue;
+
+		if (fieldValue instanceof Message) {
+			Message msg = (Message) fieldValue;
 			List<Descriptors.FieldDescriptor> fields = msg
 					.getDescriptorForType().getFields();
 			Tuple t = new Tuple();
 			for (Descriptors.FieldDescriptor field : fields) {
-				Object value = msg.getField(field);
+				Object value = convertToTupleObject(msg.getField(field));
 				t.add(value);
 			}
-			return t;
-		} else {
-			return fieldValue;
+
+            returnValue = t;
 		}
+
+        return returnValue;
 	}
 
 	private Descriptors.FieldDescriptor getFieldDescriptor(

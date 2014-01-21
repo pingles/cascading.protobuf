@@ -4,7 +4,7 @@
 
 	<groupId>cascading.protobuf</groupId>
 	<artifactId>cascading.protobuf</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4</version>
 	<packaging>jar</packaging>
 
 	<name>cascading.protobuf</name>
@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
-			<version>2.4.1</version>
+			<version>2.5.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -100,7 +100,7 @@
             <plugin>
                 <groupId>com.google.protobuf.tools</groupId>
                 <artifactId>maven-protoc-plugin</artifactId>
-                <version>0.3.1</version>
+                <version>0.3.2</version>
                 <configuration>
                     <protocExecutable>/usr/local/bin/protoc</protocExecutable>
                 </configuration>

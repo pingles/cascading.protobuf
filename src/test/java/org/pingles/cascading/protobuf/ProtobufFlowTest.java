@@ -2,7 +2,8 @@ package org.pingles.cascading.protobuf;
 
 import cascading.PlatformTestCase;
 import cascading.flow.Flow;
-import cascading.operation.Identity;
+import cascading.flow.FlowProcess;
+import cascading.operation.*;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
 import cascading.scheme.hadoop.TextLine;
@@ -12,6 +13,8 @@ import cascading.tap.hadoop.Lfs;
 import cascading.test.HadoopPlatform;
 import cascading.test.PlatformRunner;
 import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
+import cascading.tuple.TupleEntry;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -135,7 +138,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
         String outputDir = "./tmp/test/output/names-out";
 
         Messages.Person strongbad = this.personBuilder().setId(456).setName("strongbad").build();
-        Messages.Person homestar = this.personBuilder().setId(789).setName("homestar").build();
+        Messages.Person homestar = this.personBuilder().setId(789).setName("homestar").addFriends(strongbad).build();
         Messages.Person paul = this.personBuilder().setId(123).setName("Paul").addFriends(strongbad).addFriends(homestar).build();
 
         writePersonToSequenceFile(paul, inputFile);
@@ -143,14 +146,16 @@ public class ProtobufFlowTest extends PlatformTestCase {
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email", "friends")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
         Pipe pipe = new Each("Extract friends", new Fields("friends"), new Identity());
+        pipe = new Each(pipe, new ExtractFriendsNames(new Fields("id", "name", "email", "friends"), new Fields("name")));
 
         Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
         flow.complete();
 
         List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
 
-        assertEquals(1, lines.size());
-        assertEquals("456\tstrongbad\t\t\t789\thomestar\t\t", lines.get(0));
+        assertEquals(2, lines.size());
+        assertEquals("strongbad", lines.get(0));
+        assertEquals("homestar", lines.get(1));
     }
 
     private Messages.Person.Builder personBuilder() {
