@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
@@ -33,7 +34,7 @@ public class TupleValueTranslatorTest {
         Object firstFriend = friends.get(0);
 
         assertThat(firstFriend, instanceOf(Tuple.class));
-        assertEquals("Peter", ((Tuple)firstFriend).getString(1));
+        assertEquals("Peter", ((Tuple) firstFriend).getString(1));
     }
 
     @Test
@@ -43,6 +44,17 @@ public class TupleValueTranslatorTest {
         TupleValueTranslator t = new TupleValueTranslator(p);
 
         assertNull(t.translate(fieldDescriptor("email")));
+    }
+
+    @Test
+    public void shouldConvertEnumValueToString() {
+        Descriptors.FieldDescriptor issuerField = Messages.Passport.getDescriptor().findFieldByName("issuer");
+
+        Messages.Passport passport = Messages.Passport.newBuilder().setPassportNumber(123).setIssuer(Messages.Issuer.BRITISH).build();
+        TupleValueTranslator t = new TupleValueTranslator(passport);
+
+        assertNotNull(t.translate(issuerField));
+        assertEquals("BRITISH", t.translate(issuerField));
     }
 
     private Descriptors.FieldDescriptor fieldDescriptor(String fieldName) {

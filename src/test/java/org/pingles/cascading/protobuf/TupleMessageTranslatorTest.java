@@ -9,6 +9,8 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TupleMessageTranslatorTest {
     @Test
@@ -37,5 +39,17 @@ public class TupleMessageTranslatorTest {
         assertEquals(0, friends.size());
 
         assertNull(tuple.getObject(4));
+    }
+
+    @Test
+    public void shouldTranslateNestedMessageToTuple() {
+        Messages.Passport passport = Messages.Passport.newBuilder().setPassportNumber(999).build();
+        Messages.Person p = Messages.Person.newBuilder().setPassport(passport).setId(123).setName("Paul").build();
+
+        TupleMessageTranslator t = new TupleMessageTranslator(Fields.ALL, p);
+        Tuple tuple = t.translate();
+
+        Object passportOnTuple = tuple.get(4);
+        assertThat(passportOnTuple, instanceOf(Tuple.class));
     }
 }

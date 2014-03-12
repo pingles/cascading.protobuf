@@ -47,6 +47,11 @@ public class TupleValueTranslator {
             return messageTranslator.translate();
         }
 
+        if (o instanceof Descriptors.EnumValueDescriptor) {
+            Descriptors.EnumValueDescriptor ev = (Descriptors.EnumValueDescriptor) o;
+            return ev.getName();
+        }
+
         return o;
     }
 }

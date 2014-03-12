@@ -121,7 +121,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
 
         assertEquals(1, lines.size());
         // there's an empty tab because there are no friends... weird huh
-        assertEquals("123\tPaul\ttest@pingles.org\t[]\t12345", lines.get(0));
+        assertEquals("123\tPaul\ttest@pingles.org\t[]\t12345\tnull", lines.get(0));
     }
 
     @Test

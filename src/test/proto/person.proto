@@ -3,8 +3,13 @@ package org.pingles.cascading.protobuf;
 option java_package = "org.pingles.cascading.protobuf";
 option java_outer_classname = "Messages";
 
+enum Issuer {
+    BRITISH = 1;
+}
+
 message Passport {
     required int32 passportNumber = 1;
+    optional Issuer issuer = 2;
 }
 
 message Person {
