@@ -93,7 +93,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
 
         assertEquals(1, lines.size());
         // there's an empty tab because there are no friends... weird huh
-        assertEquals("123\tPaul\t\t[]\t", lines.get(0));
+        assertEquals("123\tPaul\tnull\t[]\tnull", lines.get(0));
     }
     
     @Test
@@ -142,26 +142,6 @@ public class ProtobufFlowTest extends PlatformTestCase {
 
         assertEquals(1, lines.size());
         assertEquals("Paul\ttest@pingles.org", lines.get(0));
-    }
-
-    @Test
-    public void shouldSetEmailFieldToEmptyStringWhenNotSetOnMessage() throws IOException {
-        String inputFile = "./tmp/test/data/small.seq";
-        String outputDir = "./tmp/test/output/names-out";
-
-        writePersonToSequenceFile(this.personBuilder().setId(123).setName("Paul").build(), inputFile);
-
-        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email")), inputFile);
-        Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
-        Pipe pipe = new Each("Extract names", new Fields("name", "email"), new Identity());
-
-        Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
-        flow.complete();
-
-        List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
-
-        assertEquals(1, lines.size());
-        assertEquals("Paul\t", lines.get(0));
     }
 
     @Test

@@ -23,7 +23,11 @@ public class TupleMessageTranslator {
      */
     public void translateOntoTuple(Tuple tuple) {
         if (message.isInitialized()) {
-            initializeTupleFromMessage(tuple);
+            TupleValueTranslator valueTranslator = new TupleValueTranslator(message);
+
+            for (Descriptors.FieldDescriptor field : fields) {
+                tuple.add(valueTranslator.translate(field));
+            }
         }
     }
 
@@ -31,14 +35,6 @@ public class TupleMessageTranslator {
         Tuple t = new Tuple();
         translateOntoTuple(t);
         return t;
-    }
-
-    private void initializeTupleFromMessage(Tuple t) {
-        TupleValueTranslator valueTranslator = new TupleValueTranslator(message);
-
-        for (Descriptors.FieldDescriptor field : fields) {
-            t.add(valueTranslator.translate(field));
-        }
     }
 
     private List<Descriptors.FieldDescriptor> fieldsToRead(Message message, Fields sourceFields) {

@@ -22,7 +22,11 @@ public class TupleValueTranslator {
      */
     public Object translate(Descriptors.FieldDescriptor field) {
         if (!field.isRepeated()) {
-            return coerceValue(message.getField(field));
+            if (!message.hasField(field)) {
+                return null;
+            }
+            Object value = message.getField(field);
+            return coerceValue(value);
         }
 
         List<Object> repeatedTuples = new ArrayList<Object>();
