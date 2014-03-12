@@ -3,10 +3,16 @@ package org.pingles.cascading.protobuf;
 option java_package = "org.pingles.cascading.protobuf";
 option java_outer_classname = "Messages";
 
+message Passport {
+    required int32 passportNumber = 1;
+}
+
 message Person {
     required int32 id = 1;
     required string name = 2;
     optional string email = 3;
 
     repeated Person friends = 4;
+
+    optional Passport passport = 5;
 }

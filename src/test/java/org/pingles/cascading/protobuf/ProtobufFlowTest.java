@@ -70,13 +70,17 @@ public class ProtobufFlowTest extends PlatformTestCase {
         assertEquals(1, lines.size());
         assertEquals("Paul", lines.get(0));
     }
-    
+
     @Test
-    public void shouldWorkWithSpecifyingFieldsALL() throws IOException {
+    public void shouldConvertUninitalisedOptionalFieldsToNull() throws IOException {
         String inputFile = "./tmp/test/data/small.seq";
         String outputDir = "./tmp/test/output/names-out";
 
-        writePersonToSequenceFile(this.personBuilder().setId(123).setName("Paul").setEmail("test@pingles.org").build(), inputFile);
+        Messages.Passport passport = this.personBuilder().getPassportBuilder().setPassportNumber(12345).build();
+        writePersonToSequenceFile(this.personBuilder()
+                .setId(123)
+                .setName("Paul")
+                .build(), inputFile);
 
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, Fields.ALL), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
@@ -89,7 +93,35 @@ public class ProtobufFlowTest extends PlatformTestCase {
 
         assertEquals(1, lines.size());
         // there's an empty tab because there are no friends... weird huh
-        assertEquals("123\tPaul\ttest@pingles.org\t", lines.get(0));
+        assertEquals("123\tPaul\t\t[]\t", lines.get(0));
+    }
+    
+    @Test
+    public void shouldWorkWithSpecifyingFieldsALL() throws IOException {
+        String inputFile = "./tmp/test/data/small.seq";
+        String outputDir = "./tmp/test/output/names-out";
+
+
+        Messages.Passport passport = this.personBuilder().getPassportBuilder().setPassportNumber(12345).build();
+        writePersonToSequenceFile(this.personBuilder()
+                .setId(123)
+                .setName("Paul")
+                .setEmail("test@pingles.org")
+                .setPassport(passport)
+                .build(), inputFile);
+
+        Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, Fields.ALL), inputFile);
+        Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
+        Pipe pipe = new Pipe("Pass through");
+
+        Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
+        flow.complete();
+
+        List<String> lines = FileUtils.readLines(new File(outputDir + "/part-00000"));
+
+        assertEquals(1, lines.size());
+        // there's an empty tab because there are no friends... weird huh
+        assertEquals("123\tPaul\ttest@pingles.org\t[]\t12345", lines.get(0));
     }
 
     @Test
@@ -146,7 +178,7 @@ public class ProtobufFlowTest extends PlatformTestCase {
         Tap source = new Lfs(new ProtobufSequenceFileScheme(Messages.Person.class, new Fields("id", "name", "email", "friends")), inputFile);
         Tap sink = new Lfs(new TextLine(), outputDir, SinkMode.REPLACE);
         Pipe pipe = new Each("Extract friends", new Fields("friends"), new Identity());
-        pipe = new Each(pipe, new ExtractFriendsNames(new Fields("id", "name", "email", "friends"), new Fields("name")));
+        pipe = new Each(pipe, new ExtractFriendsNames(new Fields("id", "name", "email", "friends", "passport"), new Fields("name")));
 
         Flow flow = getPlatform().getFlowConnector().connect(source, sink, pipe);
         flow.complete();

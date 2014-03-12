@@ -22,7 +22,6 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 
 public class ProtobufSequenceFileScheme extends Scheme<JobConf, RecordReader, OutputCollector, Object[], Object[]> {
     private static final long serialVersionUID = 1L;
@@ -57,7 +56,10 @@ public class ProtobufSequenceFileScheme extends Scheme<JobConf, RecordReader, Ou
 
         try {
             DynamicMessage message = parseMessage(getMessageDescriptor(), valueBytes);
-            initializeTupleFromMessage(tuple, message, getSourceFields());
+
+            TupleMessageTranslator tupleMessageTranslator = new TupleMessageTranslator(getSourceFields(), message);
+            tupleMessageTranslator.translateOntoTuple(tuple);
+
         } catch (InvalidProtocolBufferException e) {
             throw new RuntimeException(e);
         }
@@ -65,51 +67,6 @@ public class ProtobufSequenceFileScheme extends Scheme<JobConf, RecordReader, Ou
         return true;
     }
 
-    private void initializeTupleFromMessage(Tuple t, Message message, Fields fieldsToSelect) {
-        List<Descriptors.FieldDescriptor> messageFields = message.getDescriptorForType().getFields();
-
-        if (fieldsToSelect.size() == 0) {
-            for (Descriptors.FieldDescriptor messageField : messageFields) {
-                Object value = readField(messageField, message);
-                t.add(value);
-            }
-        } else {
-            for (Comparable field : fieldsToSelect) {
-                for (Descriptors.FieldDescriptor messageField : messageFields) {
-                    if (field.equals(messageField.getName())) {
-                        Object value = readField(messageField, message);
-                        t.add(value);
-                    }
-                }
-            }
-        }
-    }
-
-    private Object readField(Descriptors.FieldDescriptor field, Message message) {
-        if (!field.isRepeated()) {
-            return coerceValue(message.getField(field));
-        }
-
-        Tuple t = new Tuple();
-
-        for (int idx = 0; idx < message.getRepeatedFieldCount(field); idx++) {
-            Object val = message.getRepeatedField(field, idx);
-            t.add(coerceValue(val));
-        }
-
-        return t;
-
-    }
-
-    private Object coerceValue(Object o) {
-        if (o instanceof Message) {
-            Tuple t = new Tuple();
-            initializeTupleFromMessage(t, (Message) o, Fields.ALL);
-            return t;
-        }
-
-        return o;
-    }
 
     private DynamicMessage parseMessage(Descriptors.Descriptor messageDescriptor, byte[] valueBytes) throws InvalidProtocolBufferException {
         DynamicMessage.Builder builder = DynamicMessage.newBuilder(messageDescriptor).mergeFrom(valueBytes);

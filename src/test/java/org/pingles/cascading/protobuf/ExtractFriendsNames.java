@@ -9,6 +9,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
 import java.util.Collection;
+import java.util.List;
 
 public class ExtractFriendsNames extends BaseOperation implements Function {
     private final Fields nestedTupleFields;
@@ -21,7 +22,7 @@ public class ExtractFriendsNames extends BaseOperation implements Function {
 
     public void operate(FlowProcess flowProcess, FunctionCall functionCall) {
         TupleEntry arguments = functionCall.getArguments();
-        Tuple friends = (Tuple) arguments.getObject("friends");
+        List friends = (List) arguments.getObject("friends");
 
         for (Object friend : friends) {
             Tuple t = (Tuple) friend;
