@@ -52,4 +52,17 @@ public class TupleMessageTranslatorTest {
         Object passportOnTuple = tuple.get(4);
         assertThat(passportOnTuple, instanceOf(Tuple.class));
     }
+
+    @Test
+    public void shouldTranslateEnumOnNestedMessageToTuple() {
+        Messages.Passport passport = Messages.Passport.newBuilder().setPassportNumber(999).setIssuer(Messages.Issuer.BRITISH).build();
+        Messages.Person p = Messages.Person.newBuilder().setPassport(passport).setId(123).setName("Paul").build();
+
+        TupleMessageTranslator t = new TupleMessageTranslator(Fields.ALL, p);
+        Tuple personTuple = t.translate();
+
+        Tuple passportTuple = (Tuple) personTuple.get(4);
+        assertEquals(999, passportTuple.get(0));
+        assertEquals("BRITISH", passportTuple.get(1));
+    }
 }
